@@ -57,7 +57,7 @@ namespace novikov
 
     ~List();
 
-    List< T >& operator=(const List< T >&);
+    List< T >& operator=(List< T >);
     List< T >& operator=(List< T >&&);
 
     LIter< T > begin();
