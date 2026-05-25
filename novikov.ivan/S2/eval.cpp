@@ -9,7 +9,6 @@ namespace novikov
 {
   Queue< std::string > split(const std::string& line);
   int getPriority(const std::string& op);
-  bool isNumber(const std::string& line);
   bool isOperation(const std::string& s);
   Queue< std::string > infixToPostfix(Queue< std::string > infix);
 }
@@ -26,11 +25,11 @@ long long novikov::eval(std::string line)
   {
     std::string val = postfix.front();
     postfix.pop();
-    if (isNumber(val))
+    try
     {
       results.push(std::stoll(val));
     }
-    else
+    catch (const std::invalid_argument&)
     {
       if (results.empty())
       {
@@ -119,18 +118,6 @@ int novikov::getPriority(const std::string& op)
     return 1;
   }
   return 0;
-}
-
-bool novikov::isNumber(const std::string& line)
-{
-  for (size_t i = 0; i < line.length(); ++i)
-  {
-    if (!('0' <= line[i] && line[i] <= '9'))
-    {
-      return false;
-    }
-  }
-  return true;
 }
 
 bool novikov::isOperation(const std::string& s)

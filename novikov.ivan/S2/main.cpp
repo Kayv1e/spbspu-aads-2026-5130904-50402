@@ -21,7 +21,6 @@ int main(int argc, char** argv)
     }
     catch (const std::bad_alloc&)
     {
-      std::cerr << "Bad allocation\n";
       return 2;
     }
   }
@@ -35,7 +34,6 @@ int main(int argc, char** argv)
     }
     catch (const std::bad_alloc&)
     {
-      std::cerr << "Bad allocation\n";
       return 2;
     }
   }
@@ -54,7 +52,6 @@ int main(int argc, char** argv)
     }
     catch (...)
     {
-      std::cerr << "Unknown error\n";
       return 3;
     }
     std::cout << res;
