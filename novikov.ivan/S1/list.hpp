@@ -80,12 +80,20 @@ namespace novikov
     void popBack();
 
     void clear() noexcept;
+    void swap(List< T >& other) noexcept;
     bool empty() const noexcept;
 
   private:
     Node* head = nullptr;
     Node* tail = nullptr;
   };
+}
+
+template< class T >
+void novikov::List< T >::swap(List< T >& other) noexcept
+{
+  std::swap(head, other.head);
+  std::swap(tail, other.tail);
 }
 
 template< class T >
@@ -438,23 +446,12 @@ novikov::List< T >::List(const List< T >& other)
 {
   try
   {
-    Node* curr = nullptr;
-    Node* other_curr = other.head;
-    while (other_curr)
+    Node* curr = other.head;
+    while (curr)
     {
-      if (!curr)
-      {
-        head = new Node{other_curr->value};
-        curr = head;
-        other_curr = other_curr->next;
-        continue;
-      }
-      Node* next = new Node{other_curr->value, nullptr, curr};
-      curr->next = next;
-      curr = next;
-      other_curr = other_curr->next;
+      pushBack(curr->value);
+      curr = curr->next;
     }
-    tail = curr;
   }
   catch (...)
   {
@@ -464,37 +461,9 @@ novikov::List< T >::List(const List< T >& other)
 }
 
 template< class T >
-novikov::List< T >& novikov::List< T >::operator=(const List< T >& other)
+novikov::List< T >& novikov::List< T >::operator=(List< T > other)
 {
-  if (this == &other)
-  {
-    return *this;
-  }
-  try
-  {
-    Node* curr = nullptr;
-    Node* other_curr = other.head;
-    while (other_curr)
-    {
-      if (!curr)
-      {
-        head = new Node{other_curr->value};
-        curr = head;
-        other_curr = other_curr->next;
-        continue;
-      }
-      Node* next = new Node{other_curr->value, nullptr, curr};
-      curr->next = next;
-      curr = next;
-      other_curr = other_curr->next;
-    }
-    tail = curr;
-  }
-  catch (...)
-  {
-    clear();
-    throw;
-  }
+  this->swap(other);
   return *this;
 }
 
@@ -508,15 +477,8 @@ novikov::List< T >::List(List< T >&& other): head(other.head), tail(other.tail)
 template< class T >
 novikov::List< T >& novikov::List< T >::operator=(List< T >&& other)
 {
-  if (this == &other)
-  {
-    return *this;
-  }
   clear();
-  head = other.head;
-  tail = other.tail;
-  other.head = nullptr;
-  other.tail = nullptr;
+  this->swap(other);
   return *this;
 }
 
