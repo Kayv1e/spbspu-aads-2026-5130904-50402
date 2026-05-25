@@ -39,9 +39,10 @@ int main()
     iterators.pushBack({(*it).second.begin(), (*it).second.end()});
   }
 
-  while (true)
+  bool isValid = true;
+  while (isValid)
   {
-    bool isValid = false;
+    isValid = false;
     bool isFirst = true;
     for (auto& ends : iterators)
     {
@@ -57,11 +58,10 @@ int main()
         isValid = true;
       }
     }
-    if (!isValid)
+    if (isValid)
     {
-      break;
+      std::cout << '\n';
     }
-    std::cout << '\n';
   }
 
   iterators.clear();
@@ -71,9 +71,10 @@ int main()
   }
 
   novikov::List< size_t > sums{};
-  while (true)
+  isValid = true;
+  while (isValid)
   {
-    bool isValid = false;
+    isValid = false;
     size_t sum = 0;
     for (auto& ends : iterators)
     {
@@ -90,11 +91,10 @@ int main()
       }
     }
 
-    if (!isValid)
+    if (isValid)
     {
-      break;
+      sums.pushBack(sum);
     }
-    sums.pushBack(sum);
   }
 
   if (sums.empty())
