@@ -57,7 +57,7 @@ namespace novikov
 
     ~List();
 
-    List< T >& operator=(List< T >);
+    List< T >& operator=(const List< T >&);
     List< T >& operator=(List< T >&&);
 
     LIter< T > begin();
@@ -461,9 +461,13 @@ novikov::List< T >::List(const List< T >& other)
 }
 
 template< class T >
-novikov::List< T >& novikov::List< T >::operator=(List< T > other)
+novikov::List< T >& novikov::List< T >::operator=(const List< T >& other)
 {
-  this->swap(other);
+  if (this != &other)
+  {
+    List< T > tmp(other);
+    this->swap(tmp);
+  }
   return *this;
 }
 
@@ -477,8 +481,11 @@ novikov::List< T >::List(List< T >&& other): head(other.head), tail(other.tail)
 template< class T >
 novikov::List< T >& novikov::List< T >::operator=(List< T >&& other)
 {
-  clear();
-  this->swap(other);
+  if (this != &other)
+  {
+    clear();
+    this->swap(other);
+  }
   return *this;
 }
 
