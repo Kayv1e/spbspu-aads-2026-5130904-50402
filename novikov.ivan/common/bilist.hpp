@@ -92,13 +92,13 @@ namespace novikov
 }
 
 template< class T >
-novikov::BLCIter< T > novikov::BiList< T >::begin() const
+novikov::LCIter< T > novikov::List< T >::begin() const
 {
   return cbegin();
 }
 
 template< class T >
-novikov::BLCIter< T > novikov::BiList< T >::end() const
+novikov::LCIter< T > novikov::List< T >::end() const
 {
   return cend();
 }
