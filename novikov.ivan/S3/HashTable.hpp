@@ -16,7 +16,7 @@ namespace novikov
   class HTIter
   {
   public:
-    explicit HTIter(HashTable< Key, Value, Hash, Equal >& ht, size_t pos);
+    HTIter(HashTable< Key, Value, Hash, Equal >& ht, size_t pos);
     bool operator==(const HTIter&) const noexcept;
     bool operator!=(const HTIter&) const noexcept;
     HTIter& operator++();
@@ -35,7 +35,6 @@ namespace novikov
     bool operator==(const HTCIter&) const noexcept;
     bool operator!=(const HTCIter&) const noexcept;
     HTCIter& operator++();
-    HTCIter& operator--();
     const std::pair< Key, Value& > operator*();
 
   private:
@@ -89,11 +88,121 @@ namespace novikov
   };
 }
 
+template< class Key, class Value, class Hash, class Equal >
+novikov::HTIter< Key, Value, Hash, Equal > novikov::HashTable< Key, Value, Hash, Equal >::begin()
+{
+  return HTIter< Key, Value, Hash, Equal >(*this, 0);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+novikov::HTCIter< Key, Value, Hash, Equal > novikov::HashTable< Key, Value, Hash, Equal >::cbegin() const
+{
+  return HTCIter< Key, Value, Hash, Equal >(*this, 0);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+novikov::HTCIter< Key, Value, Hash, Equal > novikov::HashTable< Key, Value, Hash, Equal >::begin() const
+{
+  return cbegin();
+}
+
+template< class Key, class Value, class Hash, class Equal >
+novikov::HTIter< Key, Value, Hash, Equal > novikov::HashTable< Key, Value, Hash, Equal >::end()
+{
+  return HTIter< Key, Value, Hash, Equal >(*this, size_);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+novikov::HTCIter< Key, Value, Hash, Equal > novikov::HashTable< Key, Value, Hash, Equal >::cend() const
+{
+  return HTCIter< Key, Value, Hash, Equal >(*this, size_);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+novikov::HTCIter< Key, Value, Hash, Equal > novikov::HashTable< Key, Value, Hash, Equal >::end() const
+{
+  return cend();
+}
+
+template< class Key, class Value, class Hash, class Equal >
+std::pair< Key, Value& > novikov::HTIter< Key, Value, Hash, Equal >::operator*()
+{
+  return {table_->slots_[pos_].key, table_->slots_[pos_].value};
+}
+
+template< class Key, class Value, class Hash, class Equal >
+const std::pair< Key, Value& > novikov::HTCIter< Key, Value, Hash, Equal >::operator*()
+{
+  return {table_->slots_[pos_].key, table_->slots_[pos_].value};
+}
+
+template< class Key, class Value, class Hash, class Equal >
+novikov::HTIter< Key, Value, Hash, Equal >& novikov::HTIter< Key, Value, Hash, Equal >::operator++()
+{
+  ++pos_;
+  while (pos_ < table_->size_ && table_->slots_[pos_].isEmpty)
+  {
+    ++pos_;
+  }
+  return *this;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+novikov::HTCIter< Key, Value, Hash, Equal >& novikov::HTCIter< Key, Value, Hash, Equal >::operator++()
+{
+  ++pos_;
+  while (pos_ < table_->size_ && table_->slots_[pos_].isEmpty)
+  {
+    ++pos_;
+  }
+  return *this;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+bool novikov::HTCIter< Key, Value, Hash, Equal >::operator!=(
+    const HTCIter< Key, Value, Hash, Equal >& rhs) const noexcept
+{
+  return !(*this == rhs);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+bool novikov::HTIter< Key, Value, Hash, Equal >::operator!=(
+    const HTIter< Key, Value, Hash, Equal >& rhs) const noexcept
+{
+  return !(*this == rhs);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+bool novikov::HTCIter< Key, Value, Hash, Equal >::operator==(
+    const HTCIter< Key, Value, Hash, Equal >& rhs) const noexcept
+{
+  return (rhs.table_ == table_ && rhs.pos_ == pos_);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+bool novikov::HTIter< Key, Value, Hash, Equal >::operator==(
+    const HTIter< Key, Value, Hash, Equal >& rhs) const noexcept
+{
+  return (rhs.table_ == table_ && rhs.pos_ == pos_);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+novikov::HTIter< Key, Value, Hash, Equal >::HTIter(HashTable< Key, Value, Hash, Equal >& ht, size_t pos):
+  pos_(pos),
+  table_(&ht)
+{}
+
+template< class Key, class Value, class Hash, class Equal >
+novikov::HTCIter< Key, Value, Hash, Equal >::HTCIter(const HashTable< Key, Value, Hash, Equal >& ht, size_t pos):
+  pos_(pos),
+  table_(&ht)
+{}
+
 template < class Key, class Value, class Hash, class Equal >
 novikov::HashTable< Key, Value, Hash, Equal >::HashTable():
-    size_(novikov::SIZE),
-    slotsCount_(0),
-    slots_(new Slot[novikov::SIZE])
+  size_(novikov::SIZE),
+  slotsCount_(0),
+  slots_(new Slot[novikov::SIZE])
 {}
 
 template < class Key, class Value, class Hash, class Equal >
@@ -229,9 +338,9 @@ bool novikov::HashTable< Key, Value, Hash, Equal >::erase(Key k)
 
 template < class Key, class Value, class Hash, class Equal >
 novikov::HashTable< Key, Value, Hash, Equal >::HashTable(const HashTable& rhs):
-    size_(rhs.size_),
-    slotsCount_(rhs.slotsCount_),
-    slots_(new Slot[rhs.size_])
+  size_(rhs.size_),
+  slotsCount_(rhs.slotsCount_),
+  slots_(new Slot[rhs.size_])
 {
   for (size_t i = 0; i < size_; ++i)
   {
@@ -241,9 +350,9 @@ novikov::HashTable< Key, Value, Hash, Equal >::HashTable(const HashTable& rhs):
 
 template < class Key, class Value, class Hash, class Equal >
 novikov::HashTable< Key, Value, Hash, Equal >::HashTable(HashTable&& rhs):
-    size_(rhs.size_),
-    slotsCount_(rhs.slotsCount_),
-    slots_(rhs.slots_)
+  size_(rhs.size_),
+  slotsCount_(rhs.slotsCount_),
+  slots_(rhs.slots_)
 {
   rhs.slots_ = nullptr;
   rhs.size_ = 0;
@@ -260,7 +369,7 @@ void novikov::HashTable< Key, Value, Hash, Equal >::swap(HashTable< Key, Value, 
 
 template< class Key, class Value, class Hash, class Equal >
 novikov::HashTable< Key, Value, Hash, Equal >&
-novikov::HashTable< Key, Value, Hash, Equal >::operator=(const HashTable& rhs)
+    novikov::HashTable< Key, Value, Hash, Equal >::operator=(const HashTable& rhs)
 {
   if (this == &rhs)
   {
@@ -281,6 +390,24 @@ novikov::HashTable< Key, Value, Hash, Equal >&
   }
   swap(rhs);
   return *this;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void novikov::HashTable< Key, Value, Hash, Equal >::rehash(size_t slots)
+{
+  if (slots <= size_)
+  {
+    return;
+  }
+  HashTable< Key, Value, Hash, Equal > cpy;
+  delete cpy.slots_;
+  cpy.slots_ = new Slot[slots];
+  cpy.size_ = slots;
+  for (auto it = begin(); it != end(); ++it)
+  {
+    cpy.insert((*it).first, (*it).second);
+  }
+  swap(cpy);
 }
 
 #endif
