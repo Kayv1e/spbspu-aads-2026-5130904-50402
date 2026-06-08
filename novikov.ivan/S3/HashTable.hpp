@@ -7,6 +7,8 @@
 
 namespace novikov
 {
+  const size_t SIZE = 16;
+
   template < class Key, class Value, class Hash, class Equal >
   class HashTable;
 
@@ -89,9 +91,9 @@ namespace novikov
 
 template < class Key, class Value, class Hash, class Equal >
 novikov::HashTable< Key, Value, Hash, Equal >::HashTable():
-    size_(16),
+    size_(novikov::SIZE),
     slotsCount_(0),
-    slots_(new Slot[16])
+    slots_(new Slot[novikov::SIZE])
 {}
 
 template < class Key, class Value, class Hash, class Equal >
