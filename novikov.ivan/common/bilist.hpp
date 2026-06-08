@@ -61,9 +61,11 @@ namespace novikov
     List< T >& operator=(List< T >&&);
 
     LIter< T > begin();
+    LCIter< T > begin() const;
     LCIter< T > cbegin() const;
 
     LIter< T > end();
+    LCIter< T > end() const;
     LCIter< T > cend() const;
 
     T& front();
@@ -87,6 +89,18 @@ namespace novikov
     Node* head = nullptr;
     Node* tail = nullptr;
   };
+}
+
+template< class T >
+novikov::BLCIter< T > novikov::BiList< T >::begin() const
+{
+  return cbegin();
+}
+
+template< class T >
+novikov::BLCIter< T > novikov::BiList< T >::end() const
+{
+  return cend();
 }
 
 template< class T >
