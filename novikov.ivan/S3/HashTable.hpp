@@ -225,4 +225,27 @@ bool novikov::HashTable< Key, Value, Hash, Equal >::erase(Key k)
   return false;
 }
 
+template < class Key, class Value, class Hash, class Equal >
+novikov::HashTable< Key, Value, Hash, Equal >::HashTable(const HashTable& rhs):
+    size_(rhs.size_),
+    slotsCount_(rhs.slotsCount_),
+    slots_(new Slot[rhs.size_])
+{
+  for (size_t i = 0; i < size_; ++i)
+  {
+    slots_[i] = rhs.slots_[i];
+  }
+}
+
+template < class Key, class Value, class Hash, class Equal >
+novikov::HashTable< Key, Value, Hash, Equal >::HashTable(HashTable&& rhs):
+    size_(rhs.size_),
+    slotsCount_(rhs.slotsCount_),
+    slots_(rhs.slots_)
+{
+  rhs.slots_ = nullptr;
+  rhs.size_ = 0;
+  rhs.slotsCount_ = 0;
+}
+
 #endif
