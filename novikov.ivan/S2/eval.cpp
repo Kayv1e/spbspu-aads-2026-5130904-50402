@@ -5,13 +5,112 @@
 #include "queue.hpp"
 #include "eval.hpp"
 
-namespace novikov
+namespace
 {
-  Queue< std::string > split(const std::string& line);
-  int getPriority(const std::string& op);
-  bool isNumber(const std::string& line);
-  bool isOperation(const std::string& s);
-  Queue< std::string > infixToPostfix(Queue< std::string > infix);
+  int getPriority(const std::string& op)
+  {
+    if (op == "|")
+    {
+      return 3;
+    }
+    if (op == "*" || op == "/" || op == "%")
+    {
+      return 2;
+    }
+    if (op == "+" || op == "-")
+    {
+      return 1;
+    }
+    return 0;
+  }
+
+  bool isOperation(const std::string& s)
+  {
+    bool res = s == "|";
+    res = res || s == "*" || s == "/" || s == "%";
+    res = res || s == "+" || s == "-";
+    return res;
+  }
+
+  novikov::Queue< std::string > infixToPostfix(novikov::Queue< std::string > infix)
+  {
+    novikov::Queue< std::string > postfix;
+    novikov::Stack< std::string > stack;
+    while (!infix.empty())
+    {
+      std::string val = infix.front();
+      if (val == "(")
+      {
+        stack.push(val);
+      }
+      else if (val == ")")
+      {
+        std::string op = stack.top();
+        while (isOperation(op))
+        {
+          postfix.push(op);
+          stack.pop();
+          op = stack.top();
+        }
+        if (stack.top() == "(")
+        {
+          stack.pop();
+        }
+      }
+      else if (isOperation(val))
+      {
+        if (!stack.empty())
+        {
+          std::string op = stack.top();
+          while (op != "(" && getPriority(op) >= getPriority(val))
+          {
+            postfix.push(op);
+            stack.pop();
+            if (stack.empty())
+            {
+              break;
+            }
+            op = stack.top();
+          }
+        }
+        stack.push(val);
+      }
+      else
+      {
+        postfix.push(val);
+      }
+      infix.pop();
+    }
+    while (!stack.empty())
+    {
+      postfix.push(stack.top());
+      stack.pop();
+    }
+    return postfix;
+  }
+
+  novikov::Queue< std::string > split(const std::string& line)
+  {
+    novikov::Queue< std::string > res;
+    std::string curr;
+    for (size_t i = 0; i < line.length(); ++i)
+    {
+      if (line[i] == ' ')
+      {
+        res.push(curr);
+        curr.clear();
+      }
+      else
+      {
+        curr += line[i];
+      }
+    }
+    if (!curr.empty())
+    {
+      res.push(curr);
+    }
+    return res;
+  }
 }
 
 long long novikov::eval(std::string line)
@@ -26,11 +125,11 @@ long long novikov::eval(std::string line)
   {
     std::string val = postfix.front();
     postfix.pop();
-    if (isNumber(val))
+    try
     {
       results.push(std::stoll(val));
     }
-    else
+    catch (const std::invalid_argument&)
     {
       if (results.empty())
       {
@@ -102,121 +201,4 @@ long long novikov::eval(std::string line)
     }
   }
   return results.top();
-}
-
-int novikov::getPriority(const std::string& op)
-{
-  if (op == "|")
-  {
-    return 3;
-  }
-  if (op == "*" || op == "/" || op == "%")
-  {
-    return 2;
-  }
-  if (op == "+" || op == "-")
-  {
-    return 1;
-  }
-  return 0;
-}
-
-bool novikov::isNumber(const std::string& line)
-{
-  for (size_t i = 0; i < line.length(); ++i)
-  {
-    if (!('0' <= line[i] && line[i] <= '9'))
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool novikov::isOperation(const std::string& s)
-{
-  bool res = s == "|";
-  res = res || s == "*" || s == "/" || s == "%";
-  res = res || s == "+" || s == "-";
-  return res;
-}
-
-novikov::Queue< std::string > novikov::infixToPostfix(novikov::Queue< std::string > infix)
-{
-  novikov::Queue< std::string > postfix;
-  novikov::Stack< std::string > stack;
-  while (!infix.empty())
-  {
-    std::string val = infix.front();
-    if (val == "(")
-    {
-      stack.push(val);
-    }
-    else if (val == ")")
-    {
-      std::string op = stack.top();
-      while (isOperation(op))
-      {
-        postfix.push(op);
-        stack.pop();
-        op = stack.top();
-      }
-      if (stack.top() == "(")
-      {
-        stack.pop();
-      }
-    }
-    else if (novikov::isOperation(val))
-    {
-      if (!stack.empty())
-      {
-        std::string op = stack.top();
-        while (op != "(" && getPriority(op) >= getPriority(val))
-        {
-          postfix.push(op);
-          stack.pop();
-          if (stack.empty())
-          {
-            break;
-          }
-          op = stack.top();
-        }
-      }
-      stack.push(val);
-    }
-    else
-    {
-      postfix.push(val);
-    }
-    infix.pop();
-  }
-  while (!stack.empty())
-  {
-    postfix.push(stack.top());
-    stack.pop();
-  }
-  return postfix;
-}
-
-novikov::Queue< std::string > novikov::split(const std::string& line)
-{
-  novikov::Queue< std::string > res;
-  std::string curr;
-  for (size_t i = 0; i < line.length(); ++i)
-  {
-    if (line[i] == ' ')
-    {
-      res.push(curr);
-      curr.clear();
-    }
-    else
-    {
-      curr += line[i];
-    }
-  }
-  if (!curr.empty())
-  {
-    res.push(curr);
-  }
-  return res;
 }

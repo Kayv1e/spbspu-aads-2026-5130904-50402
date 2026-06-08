@@ -4,7 +4,7 @@
 
 namespace novikov
 {
-  template < class T >
+  template< class T >
   class Stack
   {
   public:
@@ -20,31 +20,31 @@ namespace novikov
   };
 }
 
-template < class T >
+template< class T >
 bool novikov::Stack< T >::empty() const noexcept
 {
 return list_.empty();
 }
 
-template < class T >
+template< class T >
 void novikov::Stack< T >::push(const T& value)
 {
   list_.pushBack(value);
 }
 
-template < class T >
+template< class T >
 void novikov::Stack< T >::push(T&& value)
 {
-  list_.pushBack(value);
+  list_.pushBack(std::move(value));
 }
 
-template < class T >
+template< class T >
 const T& novikov::Stack< T >::top() const
 {
   return list_.back();
 }
 
-template < class T >
+template< class T >
 T& novikov::Stack< T >::top()
 {
   const Stack< T >* cthis = this;
@@ -52,7 +52,7 @@ T& novikov::Stack< T >::top()
   return const_cast< T& >(ret);
 }
 
-template < class T >
+template< class T >
 void novikov::Stack< T >::pop()
 {
   list_.popBack();

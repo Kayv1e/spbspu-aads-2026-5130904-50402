@@ -5,10 +5,10 @@
 
 namespace novikov
 {
-  template < class T >
+  template< class T >
   class List;
 
-  template < class T >
+  template< class T >
   class LIter
   {
   public:
@@ -24,7 +24,7 @@ namespace novikov
     typename List< T >::Node* curr = nullptr;
   };
 
-  template < class T >
+  template< class T >
   class LCIter
   {
   public:
@@ -40,7 +40,7 @@ namespace novikov
     const typename List< T >::Node* curr = nullptr;
   };
 
-  template < class T >
+  template< class T >
   class List
   {
   public:
@@ -61,9 +61,11 @@ namespace novikov
     List< T >& operator=(List< T >&&);
 
     LIter< T > begin();
+    LCIter< T > begin() const;
     LCIter< T > cbegin() const;
 
     LIter< T > end();
+    LCIter< T > end() const;
     LCIter< T > cend() const;
 
     T& front();
@@ -80,6 +82,7 @@ namespace novikov
     void popBack();
 
     void clear() noexcept;
+    void swap(List< T >& other) noexcept;
     bool empty() const noexcept;
 
   private:
@@ -88,19 +91,38 @@ namespace novikov
   };
 }
 
-template < class T >
+template< class T >
+novikov::BLCIter< T > novikov::BiList< T >::begin() const
+{
+  return cbegin();
+}
+
+template< class T >
+novikov::BLCIter< T > novikov::BiList< T >::end() const
+{
+  return cend();
+}
+
+template< class T >
+void novikov::List< T >::swap(List< T >& other) noexcept
+{
+  std::swap(head, other.head);
+  std::swap(tail, other.tail);
+}
+
+template< class T >
 bool novikov::List< T >::empty() const noexcept
 {
   return !head;
 }
 
-template < class T >
+template< class T >
 novikov::List< T >::~List()
 {
   clear();
 }
 
-template < class T >
+template< class T >
 void novikov::List< T >::clear() noexcept
 {
   while (head)
@@ -113,42 +135,42 @@ void novikov::List< T >::clear() noexcept
   tail = nullptr;
 }
 
-template < class T >
+template< class T >
 novikov::LIter< T > novikov::List< T >::begin()
 {
   return novikov::LIter< T >(head);
 }
 
-template < class T >
+template< class T >
 novikov::LIter< T > novikov::List< T >::end()
 {
   return novikov::LIter< T >(nullptr);
 }
 
-template < class T >
+template< class T >
 novikov::LCIter< T > novikov::List< T >::cbegin() const
 {
   return novikov::LCIter< T >(head);
 }
 
-template < class T >
+template< class T >
 novikov::LCIter< T > novikov::List< T >::cend() const
 {
   return novikov::LCIter< T >(nullptr);
 }
 
-template < class T >
+template< class T >
 bool novikov::LIter< T >::operator==(const novikov::LIter< T >& other) const noexcept
 {
   return curr == other.curr;
 }
 
-template < class T >
-novikov::LIter< T >::LIter(typename List< T >::Node* node): curr(node)
-{
-}
+template< class T >
+novikov::LIter< T >::LIter(typename List< T >::Node* node):
+  curr(node)
+{}
 
-template < class T >
+template< class T >
 void novikov::List< T >::pushBack(T&& value)
 {
   if (!head)
@@ -182,7 +204,7 @@ void novikov::List< T >::pushBack(T&& value)
   }
 }
 
-template < class T >
+template< class T >
 void novikov::List< T >::pushBack(const T& value)
 {
   if (!head)
@@ -216,7 +238,7 @@ void novikov::List< T >::pushBack(const T& value)
   }
 }
 
-template < class T >
+template< class T >
 T& novikov::List< T >::front()
 {
   if (!head)
@@ -226,7 +248,7 @@ T& novikov::List< T >::front()
   return head->value;
 }
 
-template < class T >
+template< class T >
 const T& novikov::List< T >::front() const
 {
   if (!head)
@@ -236,7 +258,7 @@ const T& novikov::List< T >::front() const
   return head->value;
 }
 
-template < class T >
+template< class T >
 T& novikov::List< T >::back()
 {
   if (!head)
@@ -246,7 +268,7 @@ T& novikov::List< T >::back()
   return tail->value;
 }
 
-template < class T >
+template< class T >
 const T& novikov::List< T >::back() const
 {
   if (!head)
@@ -256,7 +278,7 @@ const T& novikov::List< T >::back() const
   return tail->value;
 }
 
-template < class T >
+template< class T >
 T& novikov::LIter< T >::operator*()
 {
   if (!curr)
@@ -266,7 +288,7 @@ T& novikov::LIter< T >::operator*()
   return curr->value;
 }
 
-template < class T >
+template< class T >
 novikov::LIter< T >& novikov::LIter< T >::operator++()
 {
   if (!curr)
@@ -277,7 +299,7 @@ novikov::LIter< T >& novikov::LIter< T >::operator++()
   return *this;
 }
 
-template < class T >
+template< class T >
 novikov::LIter< T >& novikov::LIter< T >::operator--()
 {
   if (!curr)
@@ -288,7 +310,7 @@ novikov::LIter< T >& novikov::LIter< T >::operator--()
   return *this;
 }
 
-template < class T >
+template< class T >
 void novikov::List< T >::pushFront(const T& value)
 {
   if (!head)
@@ -322,7 +344,7 @@ void novikov::List< T >::pushFront(const T& value)
   }
 }
 
-template < class T >
+template< class T >
 void novikov::List< T >::pushFront(T&& value)
 {
   if (!head)
@@ -356,7 +378,7 @@ void novikov::List< T >::pushFront(T&& value)
   }
 }
 
-template < class T >
+template< class T >
 void novikov::List< T >::popFront()
 {
   if (!head)
@@ -376,7 +398,7 @@ void novikov::List< T >::popFront()
   }
 }
 
-template < class T >
+template< class T >
 void novikov::List< T >::popBack()
 {
   if (!tail)
@@ -396,7 +418,7 @@ void novikov::List< T >::popBack()
   }
 }
 
-template < class T >
+template< class T >
 const T& novikov::LCIter< T >::operator*()
 {
   if (!curr)
@@ -406,7 +428,7 @@ const T& novikov::LCIter< T >::operator*()
   return curr->value;
 }
 
-template < class T >
+template< class T >
 novikov::LCIter< T >& novikov::LCIter< T >::operator++()
 {
   if (!curr)
@@ -417,7 +439,7 @@ novikov::LCIter< T >& novikov::LCIter< T >::operator++()
   return *this;
 }
 
-template < class T >
+template< class T >
 novikov::LCIter< T >& novikov::LCIter< T >::operator--()
 {
   if (!curr)
@@ -428,33 +450,22 @@ novikov::LCIter< T >& novikov::LCIter< T >::operator--()
   return *this;
 }
 
-template < class T >
-novikov::LCIter< T >::LCIter(const typename List< T >::Node* node): curr(node)
-{
-}
+template< class T >
+novikov::LCIter< T >::LCIter(const typename List< T >::Node* node):
+  curr(node)
+{}
 
-template < class T >
+template< class T >
 novikov::List< T >::List(const List< T >& other)
 {
   try
   {
-    Node* curr = nullptr;
-    Node* other_curr = other.head;
-    while (other_curr)
+    Node* curr = other.head;
+    while (curr)
     {
-      if (!curr)
-      {
-        head = new Node{other_curr->value};
-        curr = head;
-        other_curr = other_curr->next;
-        continue;
-      }
-      Node* next = new Node{other_curr->value, nullptr, curr};
-      curr->next = next;
-      curr = next;
-      other_curr = other_curr->next;
+      pushBack(curr->value);
+      curr = curr->next;
     }
-    tail = curr;
   }
   catch (...)
   {
@@ -463,76 +474,48 @@ novikov::List< T >::List(const List< T >& other)
   }
 }
 
-template < class T >
+template< class T >
 novikov::List< T >& novikov::List< T >::operator=(const List< T >& other)
 {
-  if (this == &other)
+  if (this != &other)
   {
-    return *this;
-  }
-  try
-  {
-    Node* curr = nullptr;
-    Node* other_curr = other.head;
-    while (other_curr)
-    {
-      if (!curr)
-      {
-        head = new Node{other_curr->value};
-        curr = head;
-        other_curr = other_curr->next;
-        continue;
-      }
-      Node* next = new Node{other_curr->value, nullptr, curr};
-      curr->next = next;
-      curr = next;
-      other_curr = other_curr->next;
-    }
-    tail = curr;
-  }
-  catch (...)
-  {
-    clear();
-    throw;
+    List< T > tmp(other);
+    this->swap(tmp);
   }
   return *this;
 }
 
-template < class T >
+template< class T >
 novikov::List< T >::List(List< T >&& other): head(other.head), tail(other.tail)
 {
   other.head = nullptr;
   other.tail = nullptr;
 }
 
-template < class T >
+template< class T >
 novikov::List< T >& novikov::List< T >::operator=(List< T >&& other)
 {
-  if (this == &other)
+  if (this != &other)
   {
-    return *this;
+    clear();
+    this->swap(other);
   }
-  clear();
-  head = other.head;
-  tail = other.tail;
-  other.head = nullptr;
-  other.tail = nullptr;
   return *this;
 }
 
-template < class T >
+template< class T >
 bool novikov::LIter< T >::operator!=(const LIter< T >& other) const noexcept
 {
   return !(*this == other);
 }
 
-template < class T >
+template< class T >
 bool novikov::LCIter< T >::operator==(const LCIter< T >& other)
 {
   return curr == other.curr;
 }
 
-template < class T >
+template< class T >
 bool novikov::LCIter< T >::operator!=(const LCIter< T >& other)
 {
   return !(*this == other);
