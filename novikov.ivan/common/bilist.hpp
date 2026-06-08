@@ -12,7 +12,7 @@ namespace novikov
   class LIter
   {
   public:
-    explicit LIter(typename List< T >::Node*);
+    LIter(typename List< T >::Node*, List< T >*);
     bool operator==(const LIter< T >&) const noexcept;
     bool operator!=(const LIter< T >&) const noexcept;
     LIter< T >& operator++();
@@ -21,7 +21,8 @@ namespace novikov
 
   private:
     friend class List< T >;
-    typename List< T >::Node* curr = nullptr;
+    typename List< T >::Node* curr_ = nullptr;
+    List< T >* list_;
   };
 
   template< class T >
@@ -37,7 +38,7 @@ namespace novikov
 
   private:
     friend class List< T >;
-    const typename List< T >::Node* curr = nullptr;
+    const typename List< T >::Node* curr_ = nullptr;
   };
 
   template< class T >
@@ -81,14 +82,36 @@ namespace novikov
     void popFront();
     void popBack();
 
+    LIter< T > insert(LIter< T > pos, const T& value);
+
     void clear() noexcept;
-    void swap(List< T >& other) noexcept;
     bool empty() const noexcept;
 
   private:
-    Node* head = nullptr;
-    Node* tail = nullptr;
+    Node* head_ = nullptr;
+    Node* tail_ = nullptr;
   };
+}
+
+template< class T >
+novikov::LIter< T > novikov::List< T >::insert(novikov::LIter< T > pos, const T& value)
+{
+  if (!pos.curr_)
+  {
+    return pos;
+  }
+  List< T >::Node* curr = new Node{value, pos.curr_, pos.curr_->prev};
+  novikov::LIter< T > newElem(curr, pos.list_);
+  if (pos.curr_->prev)
+  {
+    pos.curr_->prev->next = newElem.curr_;
+  }
+  else
+  {
+    pos.list_->head_ = newElem.curr_;
+  }
+  pos.curr_->prev = newElem.curr_;
+  return newElem;
 }
 
 template< class T >
@@ -104,16 +127,9 @@ novikov::LCIter< T > novikov::List< T >::end() const
 }
 
 template< class T >
-void novikov::List< T >::swap(List< T >& other) noexcept
-{
-  std::swap(head, other.head);
-  std::swap(tail, other.tail);
-}
-
-template< class T >
 bool novikov::List< T >::empty() const noexcept
 {
-  return !head;
+  return !head_;
 }
 
 template< class T >
@@ -125,32 +141,26 @@ novikov::List< T >::~List()
 template< class T >
 void novikov::List< T >::clear() noexcept
 {
-  while (head)
+  while (head_)
   {
-    Node* next = head->next;
-    delete head;
-    head = next;
+    Node* next = head_->next;
+    delete head_;
+    head_ = next;
   }
-  head = nullptr;
-  tail = nullptr;
+  head_ = nullptr;
+  tail_ = nullptr;
 }
 
 template< class T >
 novikov::LIter< T > novikov::List< T >::begin()
 {
-  return novikov::LIter< T >(head);
+  return novikov::LIter< T >(head_, this);
 }
 
 template< class T >
 novikov::LIter< T > novikov::List< T >::end()
 {
-  return novikov::LIter< T >(nullptr);
-}
-
-template< class T >
-novikov::LCIter< T > novikov::List< T >::cbegin() const
-{
-  return novikov::LCIter< T >(head);
+  return novikov::LIter< T >(nullptr, this);
 }
 
 template< class T >
@@ -162,28 +172,29 @@ novikov::LCIter< T > novikov::List< T >::cend() const
 template< class T >
 bool novikov::LIter< T >::operator==(const novikov::LIter< T >& other) const noexcept
 {
-  return curr == other.curr;
+  return curr_ == other.curr_;
 }
 
 template< class T >
-novikov::LIter< T >::LIter(typename List< T >::Node* node):
-  curr(node)
+novikov::LIter< T >::LIter(typename List< T >::Node* node, List< T >* list):
+  curr_(node),
+  list_(list)
 {}
 
 template< class T >
 void novikov::List< T >::pushBack(T&& value)
 {
-  if (!head)
+  if (!head_)
   {
-    head = nullptr;
+    head_ = nullptr;
     try
     {
-      head = new Node{std::move(value)};
-      tail = head;
+      head_ = new Node{std::move(value)};
+      tail_ = head_;
     }
     catch (...)
     {
-      delete head;
+      delete head_;
       throw;
     }
   }
@@ -192,9 +203,9 @@ void novikov::List< T >::pushBack(T&& value)
     Node* next = nullptr;
     try
     {
-      next = new Node{std::move(value), nullptr, tail};
-      tail->next = next;
-      tail = next;
+      next = new Node{std::move(value), nullptr, tail_};
+      tail_->next = next;
+      tail_ = next;
     }
     catch (...)
     {
@@ -207,17 +218,17 @@ void novikov::List< T >::pushBack(T&& value)
 template< class T >
 void novikov::List< T >::pushBack(const T& value)
 {
-  if (!head)
+  if (!head_)
   {
-    head = nullptr;
+    head_ = nullptr;
     try
     {
-      head = new Node{value};
-      tail = head;
+      head_ = new Node{value};
+      tail_ = head_;
     }
     catch (...)
     {
-      delete head;
+      delete head_;
       throw;
     }
   }
@@ -226,9 +237,9 @@ void novikov::List< T >::pushBack(const T& value)
     Node* next = nullptr;
     try
     {
-      next = new Node{value, nullptr, tail};
-      tail->next = next;
-      tail = next;
+      next = new Node{value, nullptr, tail_};
+      tail_->next = next;
+      tail_ = next;
     }
     catch (...)
     {
@@ -241,89 +252,73 @@ void novikov::List< T >::pushBack(const T& value)
 template< class T >
 T& novikov::List< T >::front()
 {
-  if (!head)
-  {
-    throw std::out_of_range("The list is empty");
-  }
-  return head->value;
+  return head_->value;
 }
 
 template< class T >
 const T& novikov::List< T >::front() const
 {
-  if (!head)
-  {
-    throw std::out_of_range("The list is empty");
-  }
-  return head->value;
+  return head_->value;
 }
 
 template< class T >
 T& novikov::List< T >::back()
 {
-  if (!head)
-  {
-    throw std::out_of_range("The list is empty");
-  }
-  return tail->value;
+  return tail_->value;
 }
 
 template< class T >
 const T& novikov::List< T >::back() const
 {
-  if (!head)
-  {
-    throw std::out_of_range("The list is empty");
-  }
-  return tail->value;
+  return tail_->value;
 }
 
 template< class T >
 T& novikov::LIter< T >::operator*()
 {
-  if (!curr)
+  if (!curr_)
   {
     throw std::logic_error("The iterator is invalid");
   }
-  return curr->value;
+  return curr_->value;
 }
 
 template< class T >
 novikov::LIter< T >& novikov::LIter< T >::operator++()
 {
-  if (!curr)
+  if (!curr_)
   {
     throw std::logic_error("The iterator is invalid");
   }
-  curr = curr->next;
+  curr_ = curr_->next;
   return *this;
 }
 
 template< class T >
 novikov::LIter< T >& novikov::LIter< T >::operator--()
 {
-  if (!curr)
+  if (!curr_)
   {
     throw std::logic_error("The iterator is invalid");
   }
-  curr = curr->prev;
+  curr_ = curr_->prev;
   return *this;
 }
 
 template< class T >
 void novikov::List< T >::pushFront(const T& value)
 {
-  if (!head)
+  if (!head_)
   {
-    head = nullptr;
+    head_ = nullptr;
     try
     {
-      head = new Node{value};
-      tail = head;
+      head_ = new Node{value};
+      tail_ = head_;
     }
     catch (...)
     {
-      delete head;
+      delete head_;
       throw;
     }
   }
@@ -332,9 +327,9 @@ void novikov::List< T >::pushFront(const T& value)
     Node* prev = nullptr;
     try
     {
-      prev = new Node{value, head, nullptr};
-      head->prev = prev;
-      head = prev;
+      prev = new Node{value, head_, nullptr};
+      head_->prev = prev;
+      head_ = prev;
     }
     catch (...)
     {
@@ -347,17 +342,17 @@ void novikov::List< T >::pushFront(const T& value)
 template< class T >
 void novikov::List< T >::pushFront(T&& value)
 {
-  if (!head)
+  if (!head_)
   {
-    head = nullptr;
+    head_ = nullptr;
     try
     {
-      head = new Node{std::move(value)};
-      tail = head;
+      head_ = new Node{std::move(value)};
+      tail_ = head_;
     }
     catch (...)
     {
-      delete head;
+      delete head_;
       throw;
     }
   }
@@ -366,9 +361,9 @@ void novikov::List< T >::pushFront(T&& value)
     Node* prev = nullptr;
     try
     {
-      prev = new Node{std::move(value), head, nullptr};
-      head->prev = prev;
-      head = prev;
+      prev = new Node{std::move(value), head_, nullptr};
+      head_->prev = prev;
+      head_ = prev;
     }
     catch (...)
     {
@@ -381,72 +376,78 @@ void novikov::List< T >::pushFront(T&& value)
 template< class T >
 void novikov::List< T >::popFront()
 {
-  if (!head)
+  if (!head_)
   {
     throw std::out_of_range("The list is empty");
   }
-  Node* new_head = head->next;
-  delete head;
-  head = new_head;
-  if (head)
+  Node* new_head = head_->next;
+  delete head_;
+  head_ = new_head;
+  if (head_)
   {
-    head->prev = nullptr;
+    head_->prev = nullptr;
   }
   else
   {
-    tail = nullptr;
+    tail_ = nullptr;
   }
 }
 
 template< class T >
 void novikov::List< T >::popBack()
 {
-  if (!tail)
+  if (!tail_)
   {
     throw std::out_of_range("The list is empty");
   }
-  Node* new_tail = tail->prev;
-  delete tail;
-  tail = new_tail;
-  if (tail)
+  Node* new_tail = tail_->prev;
+  delete tail_;
+  tail_ = new_tail;
+  if (tail_)
   {
-    tail->next = nullptr;
+    tail_->next = nullptr;
   }
   else
   {
-    head = nullptr;
+    head_ = nullptr;
   }
+}
+
+template< class T >
+novikov::LCIter< T > novikov::List< T >::cbegin() const
+{
+  return novikov::LCIter< T >(head_);
 }
 
 template< class T >
 const T& novikov::LCIter< T >::operator*()
 {
-  if (!curr)
+  if (!curr_)
   {
     throw std::logic_error("The iterator is invalid");
   }
-  return curr->value;
+  return curr_->value;
 }
 
 template< class T >
 novikov::LCIter< T >& novikov::LCIter< T >::operator++()
 {
-  if (!curr)
+  if (!curr_)
   {
     throw std::logic_error("The iterator is invalid");
   }
-  curr = curr->next;
+  curr_ = curr_->next;
   return *this;
 }
 
 template< class T >
 novikov::LCIter< T >& novikov::LCIter< T >::operator--()
 {
-  if (!curr)
+  if (!curr_)
   {
     throw std::logic_error("The iterator is invalid");
   }
-  curr = curr->prev;
+  curr_ = curr_->prev;
   return *this;
 }
 
@@ -460,12 +461,23 @@ novikov::List< T >::List(const List< T >& other)
 {
   try
   {
-    Node* curr = other.head;
-    while (curr)
+    Node* curr = nullptr;
+    Node* otherCurr = other.head_;
+    while (otherCurr)
     {
-      pushBack(curr->value);
-      curr = curr->next;
+      if (!curr)
+      {
+        head_ = new Node{otherCurr->value};
+        curr = head_;
+        otherCurr = otherCurr->next;
+        continue;
+      }
+      Node* next = new Node{otherCurr->value, nullptr, curr};
+      curr->next = next;
+      curr = next;
+      otherCurr = otherCurr->next;
     }
+    tail_ = curr;
   }
   catch (...)
   {
@@ -477,29 +489,59 @@ novikov::List< T >::List(const List< T >& other)
 template< class T >
 novikov::List< T >& novikov::List< T >::operator=(const List< T >& other)
 {
-  if (this != &other)
+  if (this == &other)
   {
-    List< T > tmp(other);
-    this->swap(tmp);
+    return *this;
+  }
+  try
+  {
+    Node* curr = nullptr;
+    Node* otherCurr = other.head_;
+    while (otherCurr)
+    {
+      if (!curr)
+      {
+        head_ = new Node{otherCurr->value};
+        curr = head_;
+        otherCurr = otherCurr->next;
+        continue;
+      }
+      Node* next = new Node{otherCurr->value, nullptr, curr};
+      curr->next = next;
+      curr = next;
+      otherCurr = otherCurr->next;
+    }
+    tail_ = curr;
+  }
+  catch (...)
+  {
+    clear();
+    throw;
   }
   return *this;
 }
 
 template< class T >
-novikov::List< T >::List(List< T >&& other): head(other.head), tail(other.tail)
+novikov::List< T >::List(List< T >&& other):
+  head(other.head_),
+  tail(other.tail_)
 {
-  other.head = nullptr;
-  other.tail = nullptr;
+  other.head_ = nullptr;
+  other.tail_ = nullptr;
 }
 
 template< class T >
 novikov::List< T >& novikov::List< T >::operator=(List< T >&& other)
 {
-  if (this != &other)
+  if (this == &other)
   {
-    clear();
-    this->swap(other);
+    return *this;
   }
+  clear();
+  head_ = other.head_;
+  tail_ = other.tail_;
+  other.head_ = nullptr;
+  other.tail_ = nullptr;
   return *this;
 }
 
@@ -512,7 +554,7 @@ bool novikov::LIter< T >::operator!=(const LIter< T >& other) const noexcept
 template< class T >
 bool novikov::LCIter< T >::operator==(const LCIter< T >& other)
 {
-  return curr == other.curr;
+  return curr_ == other.curr_;
 }
 
 template< class T >
