@@ -248,4 +248,37 @@ novikov::HashTable< Key, Value, Hash, Equal >::HashTable(HashTable&& rhs):
   rhs.slotsCount_ = 0;
 }
 
+template< class Key, class Value, class Hash, class Equal >
+void novikov::HashTable< Key, Value, Hash, Equal >::swap(HashTable< Key, Value, Hash, Equal >& rhs)
+{
+  std::swap(size_, rhs.size_);
+  std::swap(slotsCount_, rhs.slotsCount_);
+  std::swap(slots_, rhs.slots_);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+novikov::HashTable< Key, Value, Hash, Equal >&
+novikov::HashTable< Key, Value, Hash, Equal >::operator=(const HashTable& rhs)
+{
+  if (this == &rhs)
+  {
+    return *this;
+  }
+  novikov::HashTable< Key, Value, Hash, Equal > cpy(rhs);
+  swap(cpy);
+  return *this;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+novikov::HashTable< Key, Value, Hash, Equal >&
+    novikov::HashTable< Key, Value, Hash, Equal >::operator=(HashTable&& rhs)
+{
+  if (this == &rhs)
+  {
+    return *this;
+  }
+  swap(rhs);
+  return *this;
+}
+
 #endif
