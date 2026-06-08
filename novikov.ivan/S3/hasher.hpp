@@ -10,7 +10,7 @@
 namespace novikov
 {
   template <class Key>
-  class Siphash
+  class SipHash
   {
     boost::hash2::siphash_64 h_;
     static std::array<unsigned char, 16> make_seed_16()
@@ -25,18 +25,18 @@ namespace novikov
     }
 
   public:
-    Siphash()
+    SipHash()
     {
       auto seed = make_seed_16();
       h_ = boost::hash2::siphash_64(seed.data(), seed.size());
     }
 
-    explicit Siphash(std::array<unsigned char, 16> const& seed)
+    explicit SipHash(std::array<unsigned char, 16> const& seed)
         : h_(seed.data(), seed.size())
     {
     }
 
-    Siphash(unsigned char const *p, std::size_t n) : h_(p, n) {}
+    SipHash(unsigned char const *p, std::size_t n) : h_(p, n) {}
 
     std::size_t operator()(Key const &key) const
     {
