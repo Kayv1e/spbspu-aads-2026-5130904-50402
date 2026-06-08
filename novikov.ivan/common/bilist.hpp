@@ -453,7 +453,7 @@ novikov::LCIter< T >& novikov::LCIter< T >::operator--()
 
 template< class T >
 novikov::LCIter< T >::LCIter(const typename List< T >::Node* node):
-  curr(node)
+  curr_(node)
 {}
 
 template< class T >
@@ -523,8 +523,8 @@ novikov::List< T >& novikov::List< T >::operator=(const List< T >& other)
 
 template< class T >
 novikov::List< T >::List(List< T >&& other):
-  head(other.head_),
-  tail(other.tail_)
+  head_(other.head_),
+  tail_(other.tail_)
 {
   other.head_ = nullptr;
   other.tail_ = nullptr;
