@@ -2,6 +2,8 @@
 #define HASHTABLE_HPP
 #include <cstddef>
 #include <utility>
+#include <cmath>
+#include <stdexcept>
 
 namespace novikov
 {
@@ -12,32 +14,31 @@ namespace novikov
   class HTIter
   {
   public:
-    explicit HTIter(HashTable< Key, Value, Hash, Equal >&);
+    explicit HTIter(HashTable< Key, Value, Hash, Equal >& ht, size_t pos);
     bool operator==(const HTIter&) const noexcept;
     bool operator!=(const HTIter&) const noexcept;
     HTIter& operator++();
-    HTIter& operator--();
-    std::pair< Key, Value >& operator*();
+    std::pair< Key, Value& > operator*();
 
   private:
     size_t pos_;
-    HashTable< Key, Value, Hash, Equal >& table_;
+    HashTable< Key, Value, Hash, Equal >* table_;
   };
 
   template < class Key, class Value, class Hash, class Equal >
   class HTCIter
   {
   public:
-    explicit HTCIter(const HashTable< Key, Value, Hash, Equal >&);
+    HTCIter(const HashTable< Key, Value, Hash, Equal >& ht, size_t pos);
     bool operator==(const HTCIter&) const noexcept;
     bool operator!=(const HTCIter&) const noexcept;
     HTCIter& operator++();
     HTCIter& operator--();
-    const std::pair< Key, Value >& operator*();
+    const std::pair< Key, Value& > operator*();
 
   private:
     size_t pos_;
-    const HashTable< Key, Value, Hash, Equal >& table_;
+    const HashTable< Key, Value, Hash, Equal >* table_;
   };
 
   template < class Key, class Value, class Hash, class Equal >
@@ -50,7 +51,7 @@ namespace novikov
     ~HashTable();
     HashTable& operator=(const HashTable& rhs);
     HashTable& operator=(HashTable&& rhs);
-    Value& operator[](Key key) noexcept;
+    Value& operator[](Key key);
 
     HTIter< Key, Value, Hash, Equal > begin();
     HTCIter< Key, Value, Hash, Equal > begin() const;
@@ -60,25 +61,83 @@ namespace novikov
     HTCIter< Key, Value, Hash, Equal > end() const;
     HTCIter< Key, Value, Hash, Equal > cend() const;
 
-    void insert(Key k, Value v);
-    void erase(Key k);
+    bool insert(Key k, Value v);
+    bool erase(Key k);
     bool contains(Key k) const;
     void rehash(size_t slots);
     bool empty() const;
     size_t slotsCount() const;
     size_t size() const;
     Value& at(Key key);
+    const Value& at(Key key) const;
+    void swap(HashTable< Key, Value, Hash, Equal >& rhs);
 
   private:
+    friend class HTIter< Key, Value, Hash, Equal >;
+    friend class HTCIter< Key, Value, Hash, Equal >;
     struct Slot
     {
       Key key;
       Value value;
-      bool isEmpty;
+      bool isEmpty = true;
     };
     size_t size_;
+    size_t slotsCount_;
     Slot* slots_;
   };
+}
+
+template < class Key, class Value, class Hash, class Equal >
+novikov::HashTable< Key, Value, Hash, Equal >::HashTable():
+    size_(16),
+    slotsCount_(0),
+    slots_(new Slot[16])
+{}
+
+template < class Key, class Value, class Hash, class Equal >
+novikov::HashTable< Key, Value, Hash, Equal >::HashTable::~HashTable()
+{
+  delete[] slots_;
+}
+
+template < class Key, class Value, class Hash, class Equal >
+size_t novikov::HashTable< Key, Value, Hash, Equal >::size() const
+{
+  return size_;
+}
+
+template < class Key, class Value, class Hash, class Equal >
+size_t novikov::HashTable< Key, Value, Hash, Equal >::slotsCount() const
+{
+  return slotsCount_;
+}
+
+template < class Key, class Value, class Hash, class Equal >
+bool novikov::HashTable< Key, Value, Hash, Equal >::empty() const
+{
+  return !slotsCount_;
+}
+
+template < class Key, class Value, class Hash, class Equal >
+bool novikov::HashTable< Key, Value, Hash, Equal >::insert(Key k, Value v)
+{
+  size_t limit = std::log2(size_);
+  size_t pos = Hash{}(k) & (size_ - 1);
+  for (size_t i = 0; i < limit; ++i)
+  {
+    if (slots_[pos].isEmpty)
+    {
+      slots_[pos] = {k, v, false};
+      ++slotsCount_;
+      return true;
+    }
+    if (slots_[pos].key == k)
+    {
+      return false;
+    }
+    pos = (pos + i) & (size_ - 1);
+  }
+  throw std::runtime_error("Hash table is full");
 }
 
 #endif
