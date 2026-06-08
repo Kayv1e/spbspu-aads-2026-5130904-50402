@@ -2,7 +2,8 @@
 #define HASHTABLE_HPP
 #include <cstddef>
 
-namespace novikov {
+namespace novikov
+{
   template < class Key, class Value, class Hash, class Equal >
   class HashTable {
   public:
