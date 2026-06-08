@@ -208,4 +208,21 @@ Value& novikov::HashTable< Key, Value, Hash, Equal >::operator[](Key k)
   throw std::runtime_error("Hash table is full");
 }
 
+template < class Key, class Value, class Hash, class Equal >
+bool novikov::HashTable< Key, Value, Hash, Equal >::erase(Key k)
+{
+  size_t limit = std::log2(size_);
+  size_t pos = Hash{}(k) & (size_ - 1);
+  for (size_t i = 0; i < limit; ++i)
+  {
+    if (!slots_[pos].isEmpty && slots_[pos].key == k)
+    {
+      slots_[pos].isEmpty = true;
+      return true;
+    }
+    pos = (pos + i) & (size_ - 1);
+  }
+  return false;
+}
+
 #endif
