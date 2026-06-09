@@ -83,6 +83,7 @@ namespace novikov
     void popBack();
 
     LIter< T > insert(LIter< T > pos, const T& value);
+    LIter< T > erase(LIter< T > pos);
 
     void clear() noexcept;
     bool empty() const noexcept;
@@ -112,6 +113,41 @@ novikov::LIter< T > novikov::List< T >::insert(novikov::LIter< T > pos, const T&
   }
   pos.curr_->prev = newElem.curr_;
   return newElem;
+}
+
+template< class T >
+novikov::LIter< T > novikov::List< T >::erase(LIter< T > pos)
+{
+  if (!pos.curr_)
+  {
+    return pos;
+  }
+  List< T >::Node *next, *prev;
+  prev = pos.curr_->prev;
+  next = pos.curr_->next;
+  delete pos.curr_;
+  if (next)
+  {
+    next->prev = prev;
+    if (!prev)
+    {
+      pos.list_->head_ = next;
+    }
+  }
+  if (prev)
+  {
+    prev->next = next;
+    if (!next)
+    {
+      pos.list_->tail_ = prev;
+    }
+  }
+  if (!prev && !next)
+  {
+    pos.list_->head_ = nullptr;
+    pos.list_->tail_ = nullptr;
+  }
+  return LIter< T >(next, pos.list_);
 }
 
 template< class T >
