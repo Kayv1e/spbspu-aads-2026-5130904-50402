@@ -3,7 +3,6 @@
 #include <boost/hash2/get_integral_result.hpp>
 #include <boost/hash2/hash_append.hpp>
 #include <boost/hash2/siphash.hpp>
-#include <random>
 #include <array>
 
 namespace novikov
@@ -23,15 +22,12 @@ namespace novikov
 template< class T >
 novikov::SipHash< T >::SipHash()
 {
-  std::random_device rd;
-  std::array< unsigned char, 16 > random_seed;
+  std::array< unsigned char, 16 > seed = {
+      0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+      0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10
+  };
 
-  for (size_t i = 0; i < random_seed.size(); ++i)
-  {
-    random_seed[i] = static_cast< unsigned char >(rd());
-  }
-
-  h_ = boost::hash2::siphash_64(random_seed.data(), random_seed.size());
+  h_ = boost::hash2::siphash_64(seed.data(), seed.size());
 }
 
 template< class T >
