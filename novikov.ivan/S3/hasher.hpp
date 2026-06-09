@@ -25,11 +25,13 @@ novikov::SipHash< T >::SipHash()
 {
   std::random_device rd;
   std::array< unsigned char, 16 > random_seed;
+
   for (size_t i = 0; i < random_seed.size(); ++i)
   {
     random_seed[i] = static_cast< unsigned char >(rd());
   }
-  h_ = boost::hash2::siphash_64(random_seed);
+
+  h_ = boost::hash2::siphash_64(random_seed.data(), random_seed.size());
 }
 
 template< class T >
