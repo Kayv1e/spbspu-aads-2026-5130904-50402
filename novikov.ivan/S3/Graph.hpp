@@ -1,6 +1,10 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 #include <bilist.hpp>
+#include <functional>
+#include <iostream>
+#include <string>
+#include <utility>
 #include "HashTable.hpp"
 #include "hasher.hpp"
 
