@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(at_out_of_range)
   BOOST_CHECK_THROW(ht.at(8), std::out_of_range);
 }
 
-BOOST_AUTO_TEST_CASE(read)
+BOOST_AUTO_TEST_CASE(read_test)
 {
   novikov::HashTable< int, int, novikov::SipHash< int >, std::equal_to< int > > ht;
   BOOST_REQUIRE(ht.insert(0, 10));
