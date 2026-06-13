@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <bilist.hpp>
 #include "BSTree.hpp"
+#include "Parse.hpp"
 
 void novikov::parse(std::istream& in, List< BSTree< size_t, std::string, std::less< size_t > > >& trees)
 {
