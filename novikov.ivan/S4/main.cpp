@@ -3,6 +3,7 @@
 #include <iostream>
 #include <limits>
 #include "BSTree.hpp"
+#include "Parse.hpp"
 
 int main(int argc, char* argv[])
 {

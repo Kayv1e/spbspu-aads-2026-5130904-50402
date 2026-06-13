@@ -12,7 +12,7 @@ namespace novikov
   class BSTree;
 }
 
-using BSTList = novikov::List< novikov::BSTree< std::string, size_t, std::less< std::string > > >;
+using BSTList = novikov::List< novikov::BSTree< size_t, std::string, std::less< size_t > > >;
 using cmd_t = void (*)(std::istream& in, BSTList);
 
 namespace novikov
@@ -52,6 +52,9 @@ namespace novikov
     size_t height(const_iterator it) const;
     size_t height() const;
 
+    void setName(std::string name);
+    std::string getName();
+
   private:
     struct Node
     {
@@ -59,15 +62,19 @@ namespace novikov
       Value value_;
       Node* left_ = nullptr;
       Node* right_ = nullptr;
+      size_t height_;
     };
     Node* fakeroot_;
     Compare compare_;
+    std::string name_;
 
     void clear(Node* fakeroot);
     Node* copyNodes(Node* other);
     void swap(BSTree& other) noexcept;
-    Value& insert(Key k, Value v, bool flag);
+    Value& insert(Node*& node, Key k, Value v, bool isOperator);
     Node* fallLeft(Node* node);
+    void updateHeight(Node* node);
+    size_t getHeight(Node* node);
   };
 
   void print(std::istream& in, BSTList);
@@ -111,51 +118,48 @@ novikov::BSTree<Key, Value, Compare>& novikov::BSTree<Key, Value, Compare>::oper
 }
 
 template< class Key, class Value, class Compare >
-Value& novikov::BSTree<Key, Value, Compare>::insert(Key k, Value v, bool isOperator)
+Value& novikov::BSTree<Key, Value, Compare>::insert(Node*& node, Key k, Value v, bool isOperator)
 {
-  Node* curr = fakeroot_;
-  Node* next = fakeroot_->left_;
-  while (next)
+  if (node == nullptr)
   {
-    curr = next;
-    if (compare_(k, curr->key_))
-    {
-      next = curr->left_;
-    }
-    else if (compare_(curr->key_, k))
-    {
-      next = curr->right_;
-    }
-    else
-    {
-      if (isOperator)
-      {
-        return curr->value_;
-      }
-      else
-      {
-        throw std::invalid_argument("Value already exists");
-      }
-    }
+    node = new Node();
+    node->key_ = k;
+    node->value_ = v;
+    node->height_ = 1;
+    return node->value_;
   }
-  Node* newNode = new Node;
-  newNode->key_ = k;
-  newNode->value_ = v;
-  if (curr == fakeroot_ || compare_(k, curr->key_))
+
+  Value* result = nullptr;
+
+  if (compare_(k, node->key_))
   {
-    curr->left_ = newNode;
+    result = &insert(node->left_, k, v, isOperator);
+  }
+  else if (compare_(node->key_, k))
+  {
+    result = &insert(node->right_, k, v, isOperator);
   }
   else
   {
-    curr->right_ = newNode;
+    if (isOperator)
+    {
+      return node->value_;
+    }
+    else
+    {
+      throw std::invalid_argument("Key already exists");
+    }
   }
-  return newNode->value_;
+  updateHeight(node);
+  return *result;
 }
 
 template< class Key, class Value, class Compare >
 Value& novikov::BSTree<Key, Value, Compare>::operator[](const Key& k)
 {
-  return insert(k, Value(), true);
+  Value& res = insert(fakeroot_->left_, k, Value(), true);
+  updateHeight(fakeroot_);
+  return res;
 }
 
 template< class Key, class Value, class Compare >
@@ -196,7 +200,8 @@ void novikov::BSTree<Key, Value, Compare>::swap(BSTree& other) noexcept
 template< class Key, class Value, class Compare >
 void novikov::BSTree<Key, Value, Compare>::push(Key k, Value v)
 {
-  insert(k, v, false);
+  insert(fakeroot_->left_, k, v, false);
+  updateHeight(fakeroot_);
 }
 
 template< class Key, class Value, class Compare >
@@ -305,6 +310,61 @@ typename novikov::BSTree<Key, Value, Compare>::Node*
     node = node->left_;
   }
   return node;
+}
+
+template< class Key, class Value, class Compare >
+void novikov::BSTree<Key, Value, Compare>::setName(std::string name)
+{
+  name_ = name;
+}
+
+template< class Key, class Value, class Compare >
+std::string novikov::BSTree<Key, Value, Compare>::getName()
+{
+  return name_;
+}
+
+template< class Key, class Value, class Compare >
+void novikov::BSTree<Key, Value, Compare>::updateHeight(Node* node)
+{
+  if (node)
+  {
+    size_t h1 = getHeight(node->left_);
+    size_t h2 = getHeight(node->right_);
+    if (h1 > h2)
+    {
+      node->height_ = 1 + h1;
+    }
+    else
+    {
+      node->height_ = 1 + h2;
+    }
+  }
+}
+
+template< class Key, class Value, class Compare >
+size_t novikov::BSTree<Key, Value, Compare>::getHeight(Node* node)
+{
+  if (node)
+  {
+    return node->height_;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+template< class Key, class Value, class Compare >
+size_t novikov::BSTree<Key, Value, Compare>::height() const
+{
+  return getHeight(fakeroot_->left_);
+}
+
+template< class Key, class Value, class Compare >
+size_t novikov::BSTree<Key, Value, Compare>::height(const_iterator it) const
+{
+  return getHeight(*it);
 }
 
 #endif
