@@ -22,7 +22,7 @@ void novikov::print(std::istream& in, std::ostream& out, BSTList& bstl)
   BSTIterator< size_t, std::string > bstIt = (*it).begin();
   if (bstIt == (*it).end())
   {
-    out << "\n";
+    out << "<EMPTY>" << '\n';
     return;
   }
   out << name << " " << (*bstIt).first << " " << (*bstIt).second;
@@ -31,7 +31,7 @@ void novikov::print(std::istream& in, std::ostream& out, BSTList& bstl)
   {
     out << " " << (*bstIt).first << " " << (*bstIt).second;
   }
-  out << "\n";
+  out << '\n';
 }
 
 void novikov::complement(std::istream& in, std::ostream&, BSTList& bstl)
