@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(move_assignment)
   tree1.push("a", 1);
 
   novikov::BSTree< std::string, size_t, std::less< std::string > > tree2;
-  tree2 = std::move(tree2);
+  tree2 = std::move(tree1);
   BOOST_TEST(tree2.get("a") == 1);
 }
 
