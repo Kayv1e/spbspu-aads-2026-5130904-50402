@@ -2,6 +2,7 @@
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <bilist.hpp>
 #include "BSTree.hpp"
 #include "Parse.hpp"
 #include "commands.hpp"
@@ -14,14 +15,23 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  std::ifstream in(argv[1]);
-  if (!in.is_open())
+  novikov::List< novikov::BSTree< size_t, std::string, std::less< size_t > > > trees;
+
+  try
   {
-    std::cerr << "Could not open the file" << '\n';
-    return 1;
+    std::ifstream file(argv[1]);
+    if (!file.is_open())
+    {
+      throw std::runtime_error("Could not open the file");
+    }
+    novikov::parse(file, trees);
+  }
+  catch (const std::runtime_error&)
+  {
+    std::cerr << "Input processing error" << "\n";
+    return 2;
   }
 
-  novikov::List< novikov::BSTree< size_t, std::string, std::less< size_t > > > trees;
   using cmd_t = void (*)(std::istream& in, std::ostream& out, novikov::BSTList& bstl);
   novikov::BSTree< std::string, cmd_t, std::less< std::string > > cmds;
   cmds["print"] = novikov::print;
@@ -34,7 +44,7 @@ int main(int argc, char* argv[])
   {
     try
     {
-      cmds.get(cmd)(std::cin, std::cout, trees);
+      cmds[cmd](std::cin, std::cout, trees);
     }
     catch (...)
     {
