@@ -42,5 +42,4 @@ void novikov::parse(std::istream& in, List< BSTree< size_t, std::string, std::le
       }
     }
   }
-  in.close();
 }

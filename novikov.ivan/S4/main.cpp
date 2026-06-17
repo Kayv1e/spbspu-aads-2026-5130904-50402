@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
   }
 
   novikov::List< novikov::BSTree< size_t, std::string, std::less< size_t > > > trees;
-  using cmd_t = void (*)(std::istream& in, std::ostream& out, BSTList& bstl);
+  using cmd_t = void (*)(std::istream& in, std::ostream& out, novikov::BSTList& bstl);
   novikov::BSTree< std::string, cmd_t, std::less< std::string > > cmds;
   cmds["print"] = novikov::print;
   cmds["complement"] = novikov::complement;
@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
   {
     try
     {
-      cmds.at(cmd)(std::cout, std::cin, trees);
+      cmds.get(cmd)(std::cin, std::cout, trees);
     }
     catch (...)
     {

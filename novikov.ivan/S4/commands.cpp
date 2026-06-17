@@ -17,12 +17,12 @@ void novikov::print(std::istream& in, std::ostream& out, BSTList& bstl)
   }
   if (it == bstl.end())
   {
-    throw std::out_of_range("No such tree");
+    throw std::out_of_range("Tree does not exist");
   }
   BSTIterator< size_t, std::string > bstIt = (*it).begin();
   if (bstIt == (*it).end())
   {
-    out << "<EMPTY>" << "\n";
+    out << "\n";
     return;
   }
   out << name << " " << (*bstIt).first << " " << (*bstIt).second;
