@@ -505,7 +505,7 @@ novikov::BSTIterator< Key, Value > novikov::BSTree< Key, Value, Compare >::begin
 {
   if (!fakeroot_->left_)
   {
-    return BSTIterator< Key, Value >(nullptr);
+    return end();
   }
   Node* min = fallLeft(fakeroot_->left_);
   return BSTIterator< Key, Value >(min);
@@ -516,7 +516,7 @@ novikov::BSTConstIterator< Key, Value > novikov::BSTree< Key, Value, Compare >::
 {
   if (!fakeroot_->left_)
   {
-    return BSTConstIterator< Key, Value >(nullptr);
+    return cend();
   }
   Node* min = fallLeft(fakeroot_->left_);
   return BSTConstIterator< Key, Value >(min);
@@ -525,13 +525,13 @@ novikov::BSTConstIterator< Key, Value > novikov::BSTree< Key, Value, Compare >::
 template< class Key, class Value, class Compare >
 novikov::BSTIterator< Key, Value > novikov::BSTree< Key, Value, Compare >::end()
 {
-  return BSTIterator< Key, Value >(nullptr);
+  return BSTIterator< Key, Value >(fakeroot_);
 }
 
 template< class Key, class Value, class Compare >
 novikov::BSTConstIterator< Key, Value > novikov::BSTree< Key, Value, Compare >::cend()
 {
-  return BSTConstIterator< Key, Value >(nullptr);
+  return BSTConstIterator< Key, Value >(fakeroot_);
 }
 
 template< class Key, class Value >

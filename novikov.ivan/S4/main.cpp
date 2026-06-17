@@ -44,11 +44,16 @@ int main(int argc, char* argv[])
   {
     try
     {
+      if (!cmds.has(cmd))
+      {
+        throw std::logic_error("Invalid command");
+      }
       cmds[cmd](std::cin, std::cout, trees);
     }
     catch (...)
     {
       std::cout << "<INVALID COMMAND>" << '\n';
+      std::cin.clear();
       auto toIgnore = std::numeric_limits< std::streamsize >::max();
       std::cin.ignore(toIgnore, '\n');
     }
