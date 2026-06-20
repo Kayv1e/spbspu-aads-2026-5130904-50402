@@ -171,15 +171,18 @@ namespace novikov
 
   void filterRAM(std::istream& in, std::ostream& out, novikov::SnapshotTree& snaps)
   {
-    std::string src_name, new_name;
+    std::string src_name;
     size_t min_ram;
-    if (!(in >> src_name >> new_name >> min_ram)) return;
+    if (!(in >> src_name >> min_ram)) return;
 
     if (!snaps.has(src_name))
     {
       out << "<SNAPSHOT NOT FOUND>\n";
       throw std::runtime_error("Source snapshot not found");
     }
+
+    std::string new_name = src_name + "_filtered_" + std::to_string(min_ram);
+
     if (snaps.has(new_name))
     {
       out << "<SNAPSHOT NAME EXISTS>\n";
@@ -217,21 +220,29 @@ namespace novikov
     child_snap->parent = parent_snap;
 
     parent_snap->children.push_back(child_snap);
-
     snaps.push(new_name, child_snap);
+
+    out << "Created filtered snapshot: " << new_name << "\n";
   }
 
   void filterCPU(std::istream& in, std::ostream& out, novikov::SnapshotTree& snaps)
   {
-    std::string src_name, new_name;
+    std::string src_name;
     double min_percentage;
-    if (!(in >> src_name >> new_name >> min_percentage)) return;
+    if (!(in >> src_name >> min_percentage)) return;
 
     if (!snaps.has(src_name))
     {
       out << "<SNAPSHOT NOT FOUND>\n";
       throw std::runtime_error("Source snapshot not found");
     }
+
+    std::string cpu_str = std::to_string(min_percentage);
+    cpu_str.erase(cpu_str.find_last_not_of('0') + 1, std::string::npos);
+    if (cpu_str.back() == '.') cpu_str.pop_back();
+
+    std::string new_name = src_name + "_filtered_" + cpu_str;
+
     if (snaps.has(new_name))
     {
       out << "<SNAPSHOT NAME EXISTS>\n";
@@ -269,8 +280,9 @@ namespace novikov
     child_snap->parent = parent_snap;
 
     parent_snap->children.push_back(child_snap);
-
     snaps.push(new_name, child_snap);
+
+    out << "Created filtered snapshot: " << new_name << "\n";
   }
 
   void exportSnapshot(std::istream& in, std::ostream& out, novikov::SnapshotTree& snaps)
@@ -358,5 +370,79 @@ namespace novikov
     freeSnapshotSubtree(snap_to_delete, snaps);
 
     out << "Snapshot " << snap_name << " and all its filters have been deleted.\n";
+  }
+
+  void list(std::istream&, std::ostream& out, novikov::SnapshotTree& snaps)
+  {
+    if (snaps.height() == 0)
+    {
+      out << "No snapshots available.\n";
+      return;
+    }
+
+    for (auto it = snaps.begin(); it != snaps.end(); ++it)
+    {
+      out << (*it).first;
+      auto next_it = it;
+      ++next_it;
+      if (next_it != snaps.end())
+      {
+        out << ", ";
+      }
+    }
+    out << ".\n";
+  }
+
+  void clearAll(std::istream& in, std::ostream& out, novikov::SnapshotTree& snaps)
+  {
+    out << "WARNING: running this command will delete all available snapshots.\n";
+    out << "Are you sure you want to clear ALL snapshots? (yes/no): ";
+
+    std::string confirmation;
+    if (!(in >> confirmation)) return;
+
+    for (char &c : confirmation)
+    {
+      c = std::tolower(static_cast< unsigned char >(c));
+    }
+
+    if (confirmation != "yes" && confirmation != "y")
+    {
+      out << "Deletion cancelled.\n";
+      return;
+    }
+
+    while (snaps.height() > 0)
+    {
+      auto it = snaps.begin();
+      Snapshot* snap = (*it).second;
+
+      if (snap->parent == nullptr)
+      {
+        freeSnapshotSubtree(snap, snaps);
+      }
+      else
+      {
+        snaps.drop((*it).first);
+      }
+    }
+
+    out << "All snapshots have been cleared.\n";
+  }
+
+  void help(std::istream&, std::ostream& out, novikov::SnapshotTree&)
+  {
+    out << "Available commands:\n"
+        << "  snap <snap_name>                         - Take a snapshot of all system processes\n"
+        << "  displayAllProcesses <snap_name>          - Display processes and their PIDs\n"
+        << "  getProcessDetails <name/pid> <snap>      - Display full resources usage for a process\n"
+        << "  compareSnapshots <snap1> <snap2>         - Show new processes in snap2 compared to snap1\n"
+        << "  filterRAM <snap_name> <min_ram>          - Create a filtered snapshot by RAM usage\n"
+        << "  filterCPU <snap_name> <min_percentage>   - Create a filtered snapshot by CPU usage\n"
+        << "  exportSnapshot <snap_name> <file>        - Export snapshot data to <file>.txt\n"
+        << "  delete <snap_name>                       - Delete snapshot and all its inherited filters\n"
+        << "  list                                     - List all active snapshots\n"
+        << "  clearAll                                 - Delete all snapshots\n"
+        << "  help                                     - Show this help reference\n";
   }
 }
