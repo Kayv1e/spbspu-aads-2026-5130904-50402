@@ -166,4 +166,108 @@ namespace novikov
       }
     }
   }
+
+  void filterRAM(std::istream& in, std::ostream& out, novikov::SnapshotTree& snaps)
+  {
+    std::string src_name, new_name;
+    size_t min_ram;
+    if (!(in >> src_name >> new_name >> min_ram)) return;
+
+    if (!snaps.has(src_name))
+    {
+      out << "<SNAPSHOT NOT FOUND>\n";
+      throw std::runtime_error("Source snapshot not found");
+    }
+    if (snaps.has(new_name))
+    {
+      out << "<SNAPSHOT NAME EXISTS>\n";
+      throw std::runtime_error("Destination snapshot name already exists");
+    }
+
+    Snapshot* parent_snap = snaps.get(src_name);
+    ProcessSnapTree& src_tree = parent_snap->processTree;
+    ProcessSnapTree filtered_tree;
+
+    out << "Processes which RAM usage exceeds " << min_ram << " MB:\n";
+
+    for (auto it = src_tree.begin(); it != src_tree.end(); ++it)
+    {
+      std::vector<ProcessDetails> matched_procs;
+
+      for (const auto& proc : (*it).second)
+      {
+        if (proc.ramUsage > min_ram)
+        {
+          matched_procs.push_back(proc);
+          out << proc.pid << " " << toUtf8(proc.name) << "\n";
+        }
+      }
+
+      if (!matched_procs.empty())
+      {
+        filtered_tree.push((*it).first, matched_procs);
+      }
+    }
+
+    Snapshot* child_snap = new Snapshot();
+    child_snap->name = new_name;
+    child_snap->processTree = filtered_tree;
+    child_snap->parent = parent_snap;
+
+    parent_snap->children.push_back(child_snap);
+
+    snaps.push(new_name, child_snap);
+  }
+
+  void filterCPU(std::istream& in, std::ostream& out, novikov::SnapshotTree& snaps)
+  {
+    std::string src_name, new_name;
+    double min_percentage;
+    if (!(in >> src_name >> new_name >> min_percentage)) return;
+
+    if (!snaps.has(src_name))
+    {
+      out << "<SNAPSHOT NOT FOUND>\n";
+      throw std::runtime_error("Source snapshot not found");
+    }
+    if (snaps.has(new_name))
+    {
+      out << "<SNAPSHOT NAME EXISTS>\n";
+      throw std::runtime_error("Destination snapshot name already exists");
+    }
+
+    Snapshot* parent_snap = snaps.get(src_name);
+    ProcessSnapTree& src_tree = parent_snap->processTree;
+    ProcessSnapTree filtered_tree;
+
+    out << "Processes which CPU usage exceeds " << min_percentage << " %:\n";
+
+    for (auto it = src_tree.begin(); it != src_tree.end(); ++it)
+    {
+      std::vector<ProcessDetails> matched_procs;
+
+      for (const auto& proc : (*it).second)
+      {
+        if (proc.cpuUsage > min_percentage)
+        {
+          matched_procs.push_back(proc);
+          out << proc.pid << " " << toUtf8(proc.name) << "\n";
+        }
+      }
+
+      if (!matched_procs.empty())
+      {
+        filtered_tree.push((*it).first, matched_procs);
+      }
+    }
+
+    Snapshot* child_snap = new Snapshot();
+    child_snap->name = new_name;
+    child_snap->processTree = filtered_tree;
+    child_snap->parent = parent_snap;
+
+    parent_snap->children.push_back(child_snap);
+
+    snaps.push(new_name, child_snap);
+  }
 }
