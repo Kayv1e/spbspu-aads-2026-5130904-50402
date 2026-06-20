@@ -216,7 +216,7 @@ namespace novikov
       throw std::runtime_error("Source snapshot not found");
     }
 
-    std::string new_name = src_name + "_filtered_" + std::to_string(min_ram);
+    std::string new_name = src_name + "_filteredRAM_" + std::to_string(min_ram);
 
     if (snaps.has(new_name))
     {
@@ -276,7 +276,7 @@ namespace novikov
     cpu_str.erase(cpu_str.find_last_not_of('0') + 1, std::string::npos);
     if (cpu_str.back() == '.') cpu_str.pop_back();
 
-    std::string new_name = src_name + "_filtered_" + cpu_str;
+    std::string new_name = src_name + "_filteredCPU_" + cpu_str;
 
     if (snaps.has(new_name))
     {
