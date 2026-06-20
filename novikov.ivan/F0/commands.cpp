@@ -139,4 +139,31 @@ namespace novikov
       out << "RAM usage: " << total_ram << " MB\n";
     }
   }
+
+  void compareSnapshots(std::istream& in, std::ostream& out, novikov::SnapshotTree& snaps)
+  {
+    std::string snap_name1, snap_name2;
+    if (!(in >> snap_name1 >> snap_name2)) return;
+
+    if (!snaps.has(snap_name1) || !snaps.has(snap_name2))
+    {
+      out << "<SNAPSHOT NOT FOUND>\n";
+      throw std::runtime_error("One or both snapshots not found");
+    }
+
+    ProcessSnapTree& tree1 = snaps.get(snap_name1)->processTree;
+    ProcessSnapTree& tree2 = snaps.get(snap_name2)->processTree;
+
+    out << "New processes in " << snap_name2 << " compared to " << snap_name1 << ":\n";
+
+    for (auto it = tree2.begin(); it != tree2.end(); ++it)
+    {
+      const std::wstring& proc_name = (*it).first;
+
+      if (!tree1.has(proc_name))
+      {
+        out << toUtf8(proc_name) << "\n";
+      }
+    }
+  }
 }
