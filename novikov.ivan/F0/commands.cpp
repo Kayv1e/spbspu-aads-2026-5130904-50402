@@ -1,5 +1,7 @@
 #include "commands.hpp"
 #include <stdexcept>
+#include <cctype>
+#include <fstream>
 
 namespace novikov
 {
@@ -269,5 +271,49 @@ namespace novikov
     parent_snap->children.push_back(child_snap);
 
     snaps.push(new_name, child_snap);
+  }
+
+  void exportSnapshot(std::istream& in, std::ostream& out, novikov::SnapshotTree& snaps)
+  {
+    std::string snap_name, file_name;
+    if (!(in >> snap_name >> file_name)) return;
+
+    if (!snaps.has(snap_name))
+    {
+      out << "<SNAPSHOT NOT FOUND>\n";
+      throw std::runtime_error("Snapshot not found");
+    }
+
+    std::string full_path = file_name + ".txt";
+
+    if (fileExists(full_path))
+    {
+      out << "<FILE ALREADY EXISTS>\n";
+      throw std::runtime_error("File already exists");
+    }
+
+    std::ofstream outFile(full_path);
+    if (!outFile.is_open())
+    {
+      out << "<ACCESS DENIED>\n";
+      throw std::runtime_error("Access denied");
+    }
+
+    Snapshot* snap = snaps.get(snap_name);
+    ProcessSnapTree& tree = snap->processTree;
+
+    for (auto it = tree.begin(); it != tree.end(); ++it)
+    {
+      std::string proc_name_utf8 = toUtf8((*it).first);
+      const auto& procs = (*it).second;
+
+      for (const auto& proc : procs)
+      {
+        outFile << proc.pid << " " << proc_name_utf8 << "\n";
+      }
+    }
+
+    outFile.close();
+    out << "Snapshot " << snap_name << " has been saved to " << full_path << ".\n";
   }
 }
