@@ -316,4 +316,47 @@ namespace novikov
     outFile.close();
     out << "Snapshot " << snap_name << " has been saved to " << full_path << ".\n";
   }
+
+  void deleteSnapshot(std::istream& in, std::ostream& out, novikov::SnapshotTree& snaps)
+  {
+    std::string snap_name;
+    if (!(in >> snap_name)) return;
+
+    if (!snaps.has(snap_name))
+    {
+      out << "<SNAPSHOT NOT FOUND>\n";
+      throw std::runtime_error("Snapshot not found");
+    }
+
+    out << "WARNING: deletion of this snapshot will delete all its filters.\n";
+    out << "Are you sure you want to delete snapshot '" << snap_name
+        << "' and all its inherited filters? (yes/no): ";
+
+    std::string confirmation;
+    if (!(in >> confirmation)) return;
+
+    for (char &c : confirmation)
+    {
+      c = std::tolower(static_cast< unsigned char >(c));
+    }
+
+    if (confirmation != "yes" && confirmation != "y")
+    {
+      out << "Deletion cancelled.\n";
+      return;
+    }
+
+    Snapshot* snap_to_delete = snaps.get(snap_name);
+    Snapshot* parent_node = snap_to_delete->parent;
+
+    if (parent_node != nullptr)
+    {
+      auto& siblings = parent_node->children;
+      siblings.erase(std::remove(siblings.begin(), siblings.end(), snap_to_delete), siblings.end());
+    }
+
+    freeSnapshotSubtree(snap_to_delete, snaps);
+
+    out << "Snapshot " << snap_name << " and all its filters have been deleted.\n";
+  }
 }
