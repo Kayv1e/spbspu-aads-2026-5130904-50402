@@ -1,16 +1,15 @@
 #include <iostream>
 #include <string>
 #include <limits>
-#include <map>
 #include "AVLTree.hpp"
 #include "commands.hpp"
 #include "ProcessInfo.hpp"
 
 int main()
 {
-  std::map< std::string, novikov::ProcessSnapTree > snapshots;
+  novikov::SnapshotTree snapshots;
 
-  using cmd_t = void (*)(std::istream& in, std::ostream& out, std::map< std::string, novikov::ProcessSnapTree >& snaps);
+  using cmd_t = void (*)(std::istream& in, std::ostream& out, novikov::SnapshotTree& snaps);
 
   novikov::AVLTree< std::string, cmd_t, std::less< std::string > > cmds;
 
@@ -21,6 +20,7 @@ int main()
   cmds["filterRAM"] = novikov::filterRAM;
   cmds["filterCPU"] = novikov::filterCPU;
   cmds["exportSnapshot"] = novikov::exportSnapshot;
+  cmds["deleteSnapshot"] = novikov::deleteSnapshot;
   cmds["list"] = novikov::list;
   cmds["clearAll"] = novikov::clearAll;
   cmds["help"] = novikov::help;
