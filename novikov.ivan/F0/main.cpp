@@ -25,6 +25,8 @@ int main()
   cmds["clearAll"] = novikov::clearAll;
   cmds["help"] = novikov::help;
 
+  std::cout << "Type 'help' for commands.\n> ";
+
   std::string cmd;
 
   while (std::cin >> cmd)

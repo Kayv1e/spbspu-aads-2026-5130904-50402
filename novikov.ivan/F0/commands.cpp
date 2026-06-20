@@ -1,7 +1,10 @@
-#include "commands.hpp"
 #include <stdexcept>
 #include <cctype>
 #include <fstream>
+#include <iomanip>
+#include "commands.hpp"
+#include "ProcessInfo.hpp"
+#include "ProcessUtilities.hpp"
 
 namespace novikov
 {
@@ -96,9 +99,19 @@ namespace novikov
           {
             out << "Process " << target_pid << " details:\n";
             out << "Name: " << toUtf8(proc.name) << "\n";
-            out << "Path: " << toUtf8(proc.path) << "\n";
-            out << "CPU usage: " << proc.cpuUsage << " %\n";
-            out << "RAM usage: " << proc.ramUsage << " MB\n";
+            if (proc.accessDenied)
+            {
+              out << "Access denied.\n";
+              out << "Path: N/A\n";
+              out << "CPU usage: N/A\n";
+              out << "RAM usage: N/A\n";
+            }
+            else
+            {
+              out << "Path: " << toUtf8(proc.path) << "\n";
+              out << "CPU usage: " << std::fixed << std::setprecision(1) << proc.cpuUsage << " %\n";
+              out << "RAM usage: " << proc.ramUsage << " MB\n";
+            }
             found = true;
             break;
           }
@@ -126,6 +139,7 @@ namespace novikov
 
       double total_cpu = 0.0;
       size_t total_ram = 0;
+      size_t denied_count = 0;
 
       out << arg << " details:\n";
       out << "PIDs: ";
@@ -133,12 +147,33 @@ namespace novikov
       {
         out << procs[i].pid;
         if (i + 1 < procs.size()) out << ", ";
-        total_cpu += procs[i].cpuUsage;
-        total_ram += procs[i].ramUsage;
+        if (procs[i].accessDenied)
+        {
+          ++denied_count;
+        }
+        else
+        {
+          total_cpu += procs[i].cpuUsage;
+          total_ram += procs[i].ramUsage;
+        }
       }
       out << "\n";
-      out << "CPU usage: " << total_cpu << " %\n";
-      out << "RAM usage: " << total_ram << " MB\n";
+      if (denied_count == procs.size())
+      {
+        out << "Access denied.\n";
+        out << "CPU usage: N/A\n";
+        out << "RAM usage: N/A\n";
+      }
+      else
+      {
+        out << "CPU usage: " << std::fixed << std::setprecision(1) << total_cpu << " %\n";
+        out << "RAM usage: " << total_ram << " MB\n";
+
+        if (denied_count > 0)
+        {
+          out << "Note: " << denied_count << " process(es) excluded from metrics (access denied)\n";
+        }
+      }
     }
   }
 

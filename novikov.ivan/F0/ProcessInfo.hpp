@@ -13,6 +13,7 @@ namespace novikov
     std::wstring path;
     double cpuUsage;
     size_t ramUsage;
+    bool accessDenied;
   };
 
   struct WStringLess {
